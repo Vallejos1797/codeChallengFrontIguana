@@ -1,0 +1,222 @@
+<header class=" px-5  pt-2 pb-0 mb-0  ">
+  <div class="row d-flex justify-content-start">
+    <h6 class="mb-0 pb-0">Modulo Administración</h6>
+    <h3 class="mb-0 pb-0"><strong>Administración de usuiarios</strong></h3>
+  </div>
+</header>
+<div class="row d-flex px-5  align-content-start">
+  <div class="col-6 d-flex justify-content-start ml-5 m-b3">
+    <select class="custom-select custom-box" matNativeControl (change)="changeSelect($event,'departmentId')">
+      <option class="option-custom" value="">Seleccione un Departamento</option>
+      <option  class="option-custom" *ngFor="let deparment of departments" value="{{deparment?.id}}">{{deparment?.name}}</option>
+    </select>
+    <select class="custom-select custom-box mx-2" matNativeControl (change)="changeSelect($event,'positionId')">
+      <option value="">Seleccione un Cargo</option>
+      <option *ngFor="let position of positions" value="{{position?.id}}">{{position?.name}}</option>
+    </select>
+  </div>
+  <div class="col-6 ">
+    <div class="row justify-content-end">
+      <div class="col-auto">
+        <button type="submit" class="btn btn-light custom-box" (click)="open(content)">Crear nuevo usuario
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="container-fluid  p-5 pt-2">
+  <div class="d-grid gap-">
+    <div class="bg-light border bg-white p-4">
+      <div *ngIf="dataSource.length>0">
+        <mat-table [dataSource]="dataSource" class="custom-table">
+          <ng-container *ngFor="let col of displayedColumns; let i = index" [matColumnDef]="col">
+            <mat-header-cell *matHeaderCellDef
+                             style="{{col === 'Acciones'?'custom-action-col':'custom-first-column'}}">{{ col | titlecase }}</mat-header-cell>
+            <mat-cell *matCellDef="let element">
+              <ng-container *ngIf="col === 'Usuario'">
+                {{ element.username }}
+              </ng-container>
+
+              <ng-container *ngIf="col === 'Nombres'">
+                {{ element.firstName }}  {{ element.secondName }}
+              </ng-container>
+              <ng-container *ngIf="col === 'Apellidos'">
+                {{ element.lastName }}  {{ element.secondLastName }}
+              </ng-container>
+              <ng-container *ngIf="col === 'Departamento'">
+                {{ element['department'].name }}
+              </ng-container>
+              <ng-container *ngIf="col === 'Cargo'">
+                {{ element['position'].name }}
+              </ng-container>
+              <ng-container *ngIf="col === 'Email'">
+                {{ element.email }}
+              </ng-container>
+
+              <ng-container *ngIf="col === 'Acciones'">
+                <div>
+                  <button class=" custom-edit bg-white  text-success border-0 " (click)="open(content,element.id)">
+                    <h6> <mat-icon class="mat-24" >edit</mat-icon>
+                      Editar</h6>
+                  </button>
+                  <button class="custom-delete text-danger  bg-white border-0" (click)="open(modalDelete,element.id)">
+                    <h6>   <mat-icon class="mat-12" >delete</mat-icon>
+                      Eliminar</h6>
+                  </button>
+                </div>
+
+              </ng-container>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+
+        </mat-table>
+        <div class=" ps-3 d-flex justify-content-between align-items-center custom-background  custom-border">
+          <h5><strong>Total registros: {{totalDataSource}} </strong></h5>
+          <mat-paginator class="custom-background" [length]="totalDataSource" [pageSizeOptions]="[5, 10, 25, 100]"
+                         [pageSize]="filters.per_page"
+                         [pageIndex]="pageActually"
+                         (page)="handlePage($event)"
+                         itemsPerPageLabel="Elementos por página"
+                         nextPageLabel="Siguiente"
+                         previousPageLabel="Anterior"
+                         firstPageLabel="Primera página"
+                         lastPageLabel="Última página"
+          ></mat-paginator>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<ng-template #content let-modal class="modal-dialog modal-dialog-centered">
+  <div class="modal-header">
+
+    <h4 class="modal-title mb-0"><strong>{{idUserSelected > 0 ? 'Editar' : 'Registrar'}} usuario</strong></h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+
+  </div>
+  <div class="modal-container p-5 d-flex justify-content-center">
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class=" ">
+      <div class="row">
+        <div class="my-2 col-6">
+          <h6 class="mb-0"><strong>Departamento:</strong></h6>
+
+
+          <select class="custom-select custom-input-select" formControlName="departmentId" matNativeControl
+          >
+            <option value="">Seleccione un Departamento</option>
+            <option *ngFor="let deparment of departments" value="{{deparment?.id}}">{{deparment?.name}}</option>
+
+          </select>
+
+          <div *ngIf="submitted && formControls['departmentId'].errors">
+            <div *ngIf="formControls['departmentId'].errors">
+              <div *ngIf="formControls['departmentId'].errors['required']"><span class="invalid-text">Departamento es requerido</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class=" col-6 my-2">
+          <h6 class="mb-0"><strong>Cargo:</strong></h6>
+          <select class="custom-select custom-input-select " matNativeControl formControlName="positionId">
+            <option value="">Seleccione un Cargo</option>
+            <option *ngFor="let position of positions" value="{{position?.id}}">{{position?.name}}</option>
+          </select>
+
+          <div *ngIf="submitted &&formControls['positionId'].errors">
+            <div *ngIf="formControls['positionId'].errors['required']" class="invalid-text">Cargo es requerido</div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class=" col-6 my-2">
+          <h6 class="mb-0"><strong>Usuario:</strong></h6>
+          <input type="text" class="custom-box custom-input" formControlName="username"
+                 placeholder="Ingrese Usuario">
+          <div *ngIf="submitted && formControls['username'].errors">
+            <div *ngIf="formControls['username'].errors['required']" class="invalid-text">Usuario es requerido</div>
+          </div>
+        </div>
+        <div class=" col-6 my-2">
+          <h6 class="mb-0"><strong>Email:</strong></h6>
+          <input type="text" class="custom-box  custom-input" placeholder="Ingrese Email" formControlName="email">
+          <div *ngIf="submitted && formControls['email'].errors">
+            <div *ngIf="formControls['email'].errors['required']" class="invalid-text">Email es requerido</div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+
+        <div class=" col-6 my-2">
+          <h6 class="mb-0"><strong>Primer Nombre:</strong></h6>
+          <input type="text" class="custom-box custom-input" placeholder="Ingrese Primer Nombre"
+                 formControlName="firstName">
+          <div *ngIf="submitted && formControls['firstName'].errors">
+            <div *ngIf="formControls['firstName'].errors['required']" class="invalid-text">Primer Nombre es requerido
+            </div>
+          </div>
+        </div>
+
+        <div class=" col-6 my-2">
+          <h6 class="mb-0"><strong>Segundo Nombre:</strong></h6>
+          <input type="text" class="custom-box custom-input" placeholder="Ingrese Segundo Nombre"
+                 formControlName="secondName">
+          <div *ngIf="submitted && formControls['secondName'].errors">
+            <div *ngIf="formControls['secondName'].errors['required']" class="invalid-text">Segundo Nombre es
+              requerido
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="row">
+
+        <div class=" col-6 my-2">
+          <h6 class="mb-0"><strong>Primer Apellido:</strong></h6>
+          <input type="text" class="custom-box custom-input" placeholder="Ingrese Primer Apellido"
+                 formControlName="lastName">
+          <div *ngIf="submitted && formControls['lastName'].errors">
+            <div *ngIf="formControls['lastName'].errors['required']" class="invalid-text">Primer Apellido es requerido
+            </div>
+          </div>
+        </div>
+        <div class=" col-6 my-2">
+          <h6 class="mb-0"><strong>Segundo Apellido:</strong></h6>
+          <input type="text" class="custom-box custom-input" placeholder="Ingrese Segundo Apellido"
+                 formControlName="secondLastName">
+          <div *ngIf="submitted && formControls['secondLastName'].errors">
+            <div *ngIf="formControls['secondLastName'].errors['required']" class="invalid-text">secondLastName Apellido
+              es requerido
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-light bg-primary custom-box w-25 text-white"
+            (click)="onSubmit()">{{idUserSelected > 0 ? 'Actualizar' : 'Registrar'}}</button>
+    <button type="button" class="btn btn-light   custom-box  " (click)="modal.close('Save click')">Cancelar</button>
+  </div>
+</ng-template>
+<ng-template #modalDelete let-modal>
+  <div class="modal-header">
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body text-center">
+
+    <h5>¿ Esta seguro de de eliminar el usuario seleccioando ?</h5>
+
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-light bg-primary custom-box text-white w-25" (click)="deleteUser(modalDelete)">
+      Aceptar
+    </button>
+    <button type="button" class="btn btn-light   custom-box" (click)="modal.close('Save click')">Cancelar</button>
+  </div>
+</ng-template>
