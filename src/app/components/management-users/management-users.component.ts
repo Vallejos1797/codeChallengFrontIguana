@@ -12,9 +12,10 @@ import {HttpClient, HttpClientModule, HttpParams} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {NgbModal, NgbModalRef} from "@ng-bootstrap/ng-bootstrap";
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import {ToastrModule} from 'ngx-toastr';
+
 import {MatSelectModule} from "@angular/material/select";
 import {SelectDropDownModule} from "ngx-select-dropdown";
+import {ToastrModule, ToastrService} from "ngx-toastr";
 
 export interface TableItem {
   column1: string;
@@ -42,7 +43,10 @@ const ELEMENT_DATA: any = [];
     MatButtonModule,
     MatPaginatorModule,
     ManagementUsersComponent,
-    ReactiveFormsModule, ToastrModule, MatSelectModule, SelectDropDownModule],
+    ReactiveFormsModule,
+    ToastrModule,
+    MatSelectModule,
+    SelectDropDownModule],
   templateUrl: './management-users.component.html',
   styleUrl: './management-users.component.sass'
 })
@@ -92,7 +96,7 @@ export class ManagementUsersComponent implements OnInit {
   apiUrl = 'http://127.0.0.1:8000/api/'; // Reemplaza con tu URL de la API
 
 
-  constructor(private _formBuilder: FormBuilder) {
+  constructor(private _formBuilder: FormBuilder, private toastr: ToastrService) {
     this.userForm = this._formBuilder.group({
       id: [''],
       departmentId: ['', [Validators.required]],
@@ -107,37 +111,43 @@ export class ManagementUsersComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
     this.loadData();
   }
 
   loadData() {
+    this.loadDataUsers()
     this.loadDataDepartments()
     this.loadDataPositions()
-    this.loadDataUsers()
   }
 
   loadDataUsers(): void {
 
     this.getAll(this.filters).subscribe(async (data: any) => {
-      this.dataSource = await data.data
-      this.totalDataSource = data.meta.total
+      this.dataSource = await data.data;
+      this.totalDataSource = data.meta.total;
+    }, error => {
+      this.toastr.error('Al parecer existe un error, intentelo más tarde.', 'Alerta');
     });
+
   }
 
   loadDataDepartments(): void {
 
     this.getAllDepartments(this.filters).subscribe(async (data: any) => {
-      this.departments = await data.data
-      this.departmentsModal = await data.data
+      this.departments = await data.data;
+      this.departmentsModal = await data.data;
+    }, error => {
+      this.toastr.error('Al parecer existe un error, intentelo más tarde.', 'Alerta');
     });
+
   }
 
   loadDataPositions(): void {
-
     this.getAllPositions(this.filters).subscribe(async (data: any) => {
-      this.positions = await data.data
-      this.positionsModal = await data.data
+      this.positions = await data.data;
+      this.positionsModal = await data.data;
+    }, error => {
+      this.toastr.error('Al parecer existe un error, intentelo más tarde.', 'Alerta');
     });
   }
 
@@ -227,13 +237,15 @@ export class ManagementUsersComponent implements OnInit {
       delete this.filters[attribute]
     }
     this.loadDataUsers()
+    console.log('es...', this.filters)
   }
 
   deleteUser(content: any) {
     this.deleteByUser(this.idUserSelected).subscribe(async (data: any) => {
+      console.log('elimino')
       this.loadDataUsers()
       this.closeModal()
-      // TODO TOAS
+      this.toastr.success('Eliminado!', 'Registro');
     });
   }
 
@@ -253,10 +265,7 @@ export class ManagementUsersComponent implements OnInit {
     // stop here if form is invalid
     if (this.userForm.invalid) {
       console.log('no valido ', this.userForm)
-
-
-      // this.toastr.warning('Al parecer existe un error con la información que ingresó, por favor revise y vuelva a intentar.',
-      //   'Alerta');
+      this.toastr.warning('Al parecer existe un error con la información que ingresó, por favor revise y vuelva a intentar.', 'Alerta');
       return;
     }
     const newModel = {
@@ -272,7 +281,7 @@ export class ManagementUsersComponent implements OnInit {
         this.loadDataUsers()
         this.closeModal()
         this.loading = false;
-        // TODO TOAS
+        this.toastr.success('Guardado!', 'Registro');
       });
     } else {
       this.updateUser(newModel).subscribe(async (data: any) => {
@@ -280,7 +289,7 @@ export class ManagementUsersComponent implements OnInit {
         this.loadDataUsers()
         this.closeModal()
         this.loading = false;
-        // TODO TOAS
+        this.toastr.success('Actualizado!', 'Registro');
       });
     }
   }
