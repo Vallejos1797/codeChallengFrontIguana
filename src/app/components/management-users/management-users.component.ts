@@ -80,7 +80,9 @@ export class ManagementUsersComponent implements OnInit {
   displayedColumns: string[] = ['Usuario', 'Nombres', 'Apellidos', 'Departamento', 'Cargo', 'Email', 'Acciones'];
   dataSource = ELEMENT_DATA;
   departments: any = [];
+  departmentsModal: any = [];
   positions: any = [];
+  positionsModal: any = [];
   filters: any = {per_page: 10, page: 0}
   pageActually = 0
   userForm: FormGroup;
@@ -127,6 +129,7 @@ export class ManagementUsersComponent implements OnInit {
 
     this.getAllDepartments(this.filters).subscribe(async (data: any) => {
       this.departments = await data.data
+      this.departmentsModal = await data.data
     });
   }
 
@@ -134,6 +137,7 @@ export class ManagementUsersComponent implements OnInit {
 
     this.getAllPositions(this.filters).subscribe(async (data: any) => {
       this.positions = await data.data
+      this.positionsModal = await data.data
     });
   }
 
@@ -185,16 +189,30 @@ export class ManagementUsersComponent implements OnInit {
 
 
   open(content: TemplateRef<any>, idUser?: number) {
+    this.departmentsModal = [...this.departments]
+    this.positionsModal = [...this.positions]
     this.userForm.reset()
     this.idUserSelected = idUser ? idUser : 0
     if (this.idUserSelected > 0) {
       this.getOneUser(this.idUserSelected).subscribe((data: any) => {
-        console.log('llega', data.data['position'])
-        console.log('llega', data.data['position'].id)
-        data.data.positionId = 'Abogado'
-        data.data.departmentId = data.data['department'].id
+        const departmentSelect = this.departmentsModal.find((department: any) => department.id === data.data['department'].id);
+        if (departmentSelect) {
+          const index = this.departmentsModal.indexOf(departmentSelect);
+          if (index !== -1) {
+            this.departmentsModal.splice(index, 1);
+          }
+        }
+        data.data.departmentId = departmentSelect
+
+        const positionSelect = this.positionsModal.find((position: any) => position.id === data.data['position'].id);
+        if (positionSelect) {
+          const index = this.positionsModal.indexOf(positionSelect);
+          if (index !== -1) {
+            this.positionsModal.splice(index, 1);
+          }
+        }
+        data.data.positionId = positionSelect
         this.userForm.patchValue(data.data)
-        this.userForm.controls['departmentId'].setValue(1)
       })
     }
     this.modalRef = this.modalRef = this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
@@ -209,12 +227,10 @@ export class ManagementUsersComponent implements OnInit {
       delete this.filters[attribute]
     }
     this.loadDataUsers()
-    console.log('es...', this.filters)
   }
 
   deleteUser(content: any) {
     this.deleteByUser(this.idUserSelected).subscribe(async (data: any) => {
-      console.log('elimino')
       this.loadDataUsers()
       this.closeModal()
       // TODO TOAS
