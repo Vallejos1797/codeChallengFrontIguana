@@ -97,6 +97,7 @@
             ],
             "styles": [
               "@angular/material/prebuilt-themes/indigo-pink.css",
+              "../node_modules/ngx-select-dropdown/dist/assets/style.css",
               "src/styles.sass"
             ],
             "scripts": [
